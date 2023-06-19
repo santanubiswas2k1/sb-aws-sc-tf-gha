@@ -44,11 +44,12 @@ jobs:
     - name: HashiCorp - Setup Terraform
       uses: hashicorp/setup-terraform@v2
 
-    - name: Create Backend Configuration
-      run: |
-        echo 'bucket = "${{ secrets.AWS_BUCKET_NAME }}"' > backend.hcl
-        echo 'key    = "${{ secrets.AWS_BUCKET_KEY_NAME }}"' >> backend.hcl
-        echo 'region = "${{ secrets.AWS_REGION }}"' >> backend.hcl  
+    # - name: Create Backend Configuration
+    #   run: |
+    #     echo 'bucket = "${{ secrets.AWS_BUCKET_NAME }}"' > backend.hcl
+    #     echo 'key    = "${{ secrets.AWS_BUCKET_KEY_NAME }}"' >> backend.hcl
+    #     echo 'region = "${{ secrets.AWS_REGION }}"' >> backend.hcl  
+        
         # cat > backend.tf <<EOF
         # terraform {
         #   backend "s3" {
@@ -66,7 +67,8 @@ jobs:
       run: |
         pwd
         cat ../../backend.hcl
-        terraform init -backend-config=../../backend.hcl
+        terraform init -backend-config="bucket=${{ secrets.AWS_BUCKET_NAME }}" -backend-config="key=${{ secrets.AWS_BUCKET_KEY_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}"
+        # terraform init -backend-config=../../backend.hcl
         # terraform init
 
     # - name: 'Terraform Validate'
