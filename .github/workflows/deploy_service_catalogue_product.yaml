@@ -50,7 +50,7 @@ jobs:
       working-directory: ./Infrastructure/terraform
 
     - name: 'Terraform apply'
-      run: terraform apply
+      run: terraform apply -auto-approve -no-color
       working-directory: ./Infrastructure/terraform
 
     #- name: Deploy AWS Service Catalog Product
