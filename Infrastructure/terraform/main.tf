@@ -12,6 +12,14 @@
 #   template_body = file("../cf/s3-template.json")
 # }
 
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+    }
+  }
+}
 provider "aws" {
   region = "us-west-2"  # Replace with your region
 }
