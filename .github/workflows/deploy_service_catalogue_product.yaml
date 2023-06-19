@@ -57,9 +57,11 @@ jobs:
         pwd
         ls -ltr
 
-    # - name: 'Terraform Init'
-    #   run: terraform init -backend-config=../../backend.tf
-    #   working-directory: ./Infrastructure/terraform
+    - name: 'Terraform Init'
+      working-directory: ./Infrastructure/terraform
+      run: |
+        pwd
+        terraform init -backend-config=../../backend.tf
 
     # - name: 'Terraform Validate'
     #   run: terraform validate
