@@ -37,7 +37,3 @@ jobs:
         unzip awscliv2.zip
         sudo ./aws/install
         aws --version
-
-    - name: Set up AWS infrastructure
-      run: |
-        # replace with commands to set up your AWS infrastructure
