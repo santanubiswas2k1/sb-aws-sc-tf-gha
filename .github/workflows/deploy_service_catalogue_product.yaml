@@ -36,7 +36,7 @@ jobs:
 
     - name: 'Terraform Init'
       run: terraform init
-      working-directory: ./Infrastructure/sc_product
+      working-directory: ./Infrastructure
 
     - name: 'Terraform Validate'
       run: terraform validate
