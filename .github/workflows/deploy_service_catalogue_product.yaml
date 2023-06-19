@@ -74,7 +74,7 @@ jobs:
     #   working-directory: ./Infrastructure/terraform
 
     - name: 'Terraform Plan'
-      run: terraform plan #-backend-config=../../backend.hcl
+      run: terraform plan -backend-config=../../backend.hcl
       working-directory: ./Infrastructure/terraform
 
     # - name: 'Terraform apply'
