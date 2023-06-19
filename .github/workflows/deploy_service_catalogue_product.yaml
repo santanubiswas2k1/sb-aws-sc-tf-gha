@@ -49,17 +49,17 @@ jobs:
         # echo 'bucket = "${{ secrets.AWS_BUCKET_NAME }}"' > backend.hcl
         # echo 'key    = "${{ secrets.AWS_BUCKET_KEY_NAME }}"' >> backend.hcl
         # echo 'region = "${{ secrets.AWS_REGION }}"' >> backend.hcl  
-        cat > backend.tf <<EOF
-        terraform {
-          backend "s3" {
-            bucket = "${{ env.TF_BACKEND_BUCKET }}"
-            key    = "${{ env.TF_BACKEND_KEY }}"
-            region = "${{ env.AWS_DEFAULT_REGION }}"
-          }
-        }
-        EOF
-        pwd
-        ls -ltr
+        # cat > backend.tf <<EOF
+        # terraform {
+        #   backend "s3" {
+        #     bucket = "${{ env.TF_BACKEND_BUCKET }}"
+        #     key    = "${{ env.TF_BACKEND_KEY }}"
+        #     region = "${{ env.AWS_DEFAULT_REGION }}"
+        #   }
+        # }
+        # EOF
+        # pwd
+        # ls -ltr
 
     - name: 'Terraform Init'
       working-directory: ./Infrastructure/terraform
@@ -67,16 +67,16 @@ jobs:
         pwd
         cat ../../backend.tf
         # terraform init -backend-config="bucket=${{ secrets.AWS_BUCKET_NAME }}" -backend-config="key=${{ secrets.AWS_BUCKET_KEY_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}"
-        terraform init -backend-config=../../backend.tf
+        terraform init -backend-config=../../backend.hcl
         # terraform init
 
     - name: 'Terraform Validate'
       run: terraform validate
       working-directory: ./Infrastructure/terraform
 
-    - name: 'Terraform Plan'
-      run: terraform plan -backend-config=../../backend.hcl
-      working-directory: ./Infrastructure/terraform
+    # - name: 'Terraform Plan'
+    #   run: terraform plan -backend-config=../../backend.hcl
+    #   working-directory: ./Infrastructure/terraform
 
     # - name: 'Terraform apply'
     #   run: terraform apply -auto-approve -no-color -backend-config=../../backend.tf
