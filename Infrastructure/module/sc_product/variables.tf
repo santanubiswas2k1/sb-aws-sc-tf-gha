@@ -1,11 +1,13 @@
 variable "name" {
   description = "Name of the Service Catalog Product"
   type        = string
+  default = "p1"
 }
 
 variable "owner" {
   description = "Owner of the Service Catalog Product"
   type        = string
+  default = "owner1"
 }
 
 variable "product_type" {
