@@ -61,6 +61,7 @@ jobs:
       working-directory: ./Infrastructure/terraform
       run: |
         pwd
+        cat ../../backend.tf
         terraform init -backend-config=../../backend.tf
 
     # - name: 'Terraform Validate'
