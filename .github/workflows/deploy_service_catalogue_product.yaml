@@ -40,9 +40,11 @@ jobs:
 
     - name: 'Terraform Validate'
       run: terraform validate
+      working-directory: ./Infrastructure/sc_product
 
     - name: 'Terraform Plan'
       run: terraform plan
+      working-directory: ./Infrastructure/sc_product
     #- name: Deploy AWS Service Catalog Product
     #  run: |
     #    aws servicecatalog create-product --name MyProduct --owner MyOwner --product-type CLOUD_FORMATION_TEMPLATE --provisioning-artifact-parameters Description=MyProduct,Info={LoadTemplateFromURL=https://example.com/myproduct.json},Name=MyProduct
