@@ -39,15 +39,15 @@ jobs:
 
     - name: 'Terraform Init'
       run: terraform init
-      working-directory: ./Infrastructure
+      working-directory: ./Infrastructure/terraform
 
     - name: 'Terraform Validate'
       run: terraform validate
-      working-directory: ./Infrastructure
+      working-directory: ./Infrastructure/terraform
 
     - name: 'Terraform Plan'
       run: terraform plan
-      working-directory: ./Infrastructure
+      working-directory: ./Infrastructure/terraform
 
     #- name: Deploy AWS Service Catalog Product
     #  run: |
