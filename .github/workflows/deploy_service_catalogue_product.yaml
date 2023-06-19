@@ -75,11 +75,11 @@ jobs:
       working-directory: ./Infrastructure/terraform
 
     - name: 'Terraform Plan'
-      run: terraform plan -backend-config=../../backend.hcl
+      run: terraform plan #-backend-config=../../backend.hcl
       working-directory: ./Infrastructure/terraform
 
     - name: 'Terraform apply'
-      run: terraform apply -auto-approve -no-color -backend-config=../../backend.tf
+      run: terraform apply -auto-approve -no-color #-backend-config=../../backend.tf
       working-directory: ./Infrastructure/terraform
 
     #- name: Deploy AWS Service Catalog Product
