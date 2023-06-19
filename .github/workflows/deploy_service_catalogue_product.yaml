@@ -41,9 +41,9 @@ jobs:
         sudo ./aws/install --update
         aws --version
     - name: HashiCorp - Setup Terraform
-      uses: hashicorp/setup-terraform@v2.0.3
+      uses: hashicorp/setup-terraform@v1
       with:
-        terraform_version: 1.0.5
+        terraform_version: 1.0.0
 
     - name: Create Backend Configuration
       run: |
