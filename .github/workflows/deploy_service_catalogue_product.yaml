@@ -54,23 +54,24 @@ jobs:
           }
         }
         EOF
+        pwd
         ls -ltr
 
-    - name: 'Terraform Init'
-      run: terraform init -backend-config=../../backend.tf
-      working-directory: ./Infrastructure/terraform
+    # - name: 'Terraform Init'
+    #   run: terraform init -backend-config=../../backend.tf
+    #   working-directory: ./Infrastructure/terraform
 
-    - name: 'Terraform Validate'
-      run: terraform validate
-      working-directory: ./Infrastructure/terraform
+    # - name: 'Terraform Validate'
+    #   run: terraform validate
+    #   working-directory: ./Infrastructure/terraform
 
-    - name: 'Terraform Plan'
-      run: terraform plan -backend-config=backend.tf
-      working-directory: ./Infrastructure/terraform
+    # - name: 'Terraform Plan'
+    #   run: terraform plan -backend-config=backend.tf
+    #   working-directory: ./Infrastructure/terraform
 
-    - name: 'Terraform apply'
-      run: terraform apply -auto-approve -no-color -backend-config=./backend.tf
-      working-directory: ./Infrastructure/terraform
+    # - name: 'Terraform apply'
+    #   run: terraform apply -auto-approve -no-color -backend-config=./backend.tf
+    #   working-directory: ./Infrastructure/terraform
 
     #- name: Deploy AWS Service Catalog Product
     #  run: |
