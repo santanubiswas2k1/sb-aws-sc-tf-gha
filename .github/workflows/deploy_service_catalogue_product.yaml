@@ -40,10 +40,9 @@ jobs:
         unzip awscliv2.zip
         sudo ./aws/install --update
         aws --version
+    
     - name: HashiCorp - Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: 1.0.0
+      uses: hashicorp/setup-terraform@v2
 
     - name: Create Backend Configuration
       run: |
@@ -64,7 +63,8 @@ jobs:
       run: |
         pwd
         cat ../../backend.tf
-        terraform init -backend-config=../../backend.tf
+        # terraform init -backend-config=../../backend.tf
+        terraform init
 
     # - name: 'Terraform Validate'
     #   run: terraform validate
