@@ -18,9 +18,9 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 3.0"
     }
-  }
-  backend "s3" {
-  }
+  # }
+  # backend "s3" {
+  # }
 }
 provider "aws" {
   region = "eu-west-2"  # Replace with your region

@@ -63,8 +63,8 @@ jobs:
       run: |
         pwd
         cat ../../backend.tf
-        # terraform init -backend-config=../../backend.tf
-        terraform init
+        terraform init -backend-config=../../backend.tf
+        # terraform init
 
     # - name: 'Terraform Validate'
     #   run: terraform validate
