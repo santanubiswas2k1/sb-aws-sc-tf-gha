@@ -35,8 +35,12 @@ jobs:
     - name: HashiCorp - Setup Terraform
       uses: hashicorp/setup-terraform@v2.0.3
 
+    - name: 'Terraform Init'
+      run: terraform init
+      working-directory: ./Infrastructure/terraform
+
     - name: 'Terraform destroy'
-      run: terraform destroy -auto-approve -no-color
+      run: terraform destroy -auto-approve
       working-directory: ./Infrastructure/terraform
 
     #- name: Deploy AWS Service Catalog Product
