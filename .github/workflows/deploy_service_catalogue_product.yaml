@@ -40,7 +40,7 @@ jobs:
 
     - name: 'Terraform Validate'
       run: terraform validate
-      working-directory: ./Infrastructure/sc_product
+      working-directory: ./Infrastructure
 
     - name: 'Terraform Plan'
       run: terraform plan
