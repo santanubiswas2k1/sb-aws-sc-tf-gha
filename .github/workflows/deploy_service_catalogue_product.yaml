@@ -48,9 +48,9 @@ jobs:
         cat > backend.tf <<EOF
         terraform {
           backend "s3" {
-            bucket = "${TF_BACKEND_BUCKET}"
-            key    = "${TF_BACKEND_KEY}"
-            region = "${AWS_DEFAULT_REGION}"
+            bucket = "${{ env.TF_BACKEND_BUCKET }}"
+            key    = "${{ env.TF_BACKEND_KEY }}"
+            region = "${{ env.AWS_DEFAULT_REGION }}"
           }
         }
         EOF
