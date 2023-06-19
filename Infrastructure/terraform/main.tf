@@ -19,11 +19,6 @@ terraform {
       version = "~> 3.0"
     }
   }
-  backend "s3" {
-    bucket = var.AWS_BUCKET_NAME
-    key    = var.AWS_BUCKET_KEY_NAME
-    region = var.AWS_REGION
-  }
 }
 provider "aws" {
   region = "eu-west-2"  # Replace with your region
