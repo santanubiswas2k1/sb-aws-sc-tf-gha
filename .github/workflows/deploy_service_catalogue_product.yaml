@@ -73,9 +73,9 @@ jobs:
     #   run: terraform validate
     #   working-directory: ./Infrastructure/terraform
 
-    # - name: 'Terraform Plan'
-    #   run: terraform plan #-backend-config=../../backend.tf
-    #   working-directory: ./Infrastructure/terraform
+    - name: 'Terraform Plan'
+      run: terraform plan #-backend-config=../../backend.hcl
+      working-directory: ./Infrastructure/terraform
 
     # - name: 'Terraform apply'
     #   run: terraform apply -auto-approve -no-color -backend-config=../../backend.tf
