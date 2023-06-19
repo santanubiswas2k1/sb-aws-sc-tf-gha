@@ -42,6 +42,8 @@ jobs:
         aws --version
     - name: HashiCorp - Setup Terraform
       uses: hashicorp/setup-terraform@v2.0.3
+      with:
+        terraform_version: 1.0.5
 
     - name: Create Backend Configuration
       run: |
