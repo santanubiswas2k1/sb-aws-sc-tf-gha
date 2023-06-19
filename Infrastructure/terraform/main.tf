@@ -16,12 +16,17 @@ provider "aws" {
   region = "us-west-2"  # Replace with your region
 }
 
+# locals {
+#   parameters = jsondecode(file("../cf/s3-parameters.json"))
+# }
+
 resource "aws_cloudformation_stack" "s3_bucket" {
   name = "s3_bucket"
 
-  template_body = file("../cf/s3-template.json")
+  # parameters = {
+  #   BucketName = local.parameters.BucketName
+  # }
 
-  template_parameter_values = {
-    BucketName = jsondecode(file("../cf/s3-parameter.json"))["BucketName"]
-  }
+  template_body = file("../cf/s3-template.json")
 }
+
