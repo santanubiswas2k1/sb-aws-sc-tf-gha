@@ -21,7 +21,7 @@ terraform {
   }
 }
 provider "aws" {
-  region = "us-west-2"  # Replace with your region
+  region = "eu-west-2"  # Replace with your region
 }
 
 # locals {
