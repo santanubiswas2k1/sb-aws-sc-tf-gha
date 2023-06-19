@@ -71,17 +71,17 @@ jobs:
         # terraform init -backend-config=../../backend.hcl
         # terraform init
 
-    # - name: 'Terraform Validate'
-    #   run: terraform validate
-    #   working-directory: ./Infrastructure/terraform
-
-    - name: 'Terraform Plan'
-      run: terraform plan -backend-config=../../backend.hcl
+    - name: 'Terraform Validate'
+      run: terraform validate
       working-directory: ./Infrastructure/terraform
 
-    # - name: 'Terraform apply'
-    #   run: terraform apply -auto-approve -no-color -backend-config=../../backend.tf
-    #   working-directory: ./Infrastructure/terraform
+    - name: 'Terraform Plan'
+      run: terraform plan -backend-config="bucket=${{ secrets.AWS_BUCKET_NAME }}" -backend-config="key=${{ secrets.AWS_BUCKET_KEY_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}"
+      working-directory: ./Infrastructure/terraform
+
+    - name: 'Terraform apply'
+      run: terraform apply -auto-approve -no-color -backend-config="bucket=${{ secrets.AWS_BUCKET_NAME }}" -backend-config="key=${{ secrets.AWS_BUCKET_KEY_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}"
+      working-directory: ./Infrastructure/terraform
 
     #- name: Deploy AWS Service Catalog Product
     #  run: |
