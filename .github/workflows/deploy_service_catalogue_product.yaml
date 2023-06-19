@@ -66,7 +66,7 @@ jobs:
       working-directory: ./Infrastructure/terraform
       run: |
         pwd
-        cat ../../backend.hcl
+        # cat ../../backend.hcl
         terraform init -backend-config="bucket=${{ secrets.AWS_BUCKET_NAME }}" -backend-config="key=${{ secrets.AWS_BUCKET_KEY_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}"
         # terraform init -backend-config=../../backend.hcl
         # terraform init
