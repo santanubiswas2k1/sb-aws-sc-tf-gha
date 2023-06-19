@@ -1,23 +1,30 @@
 {
-    "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "AWS CloudFormation Sample Template S3_Bucket: Sample template showing how to create a publicly accessible S3 bucket.",
-    "Resources": {
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "AWS CloudFormation Sample Template S3_Bucket: Sample template showing how to create a publicly accessible S3 bucket.",
+  "Resources": {
       "S3Bucket": {
-        "Type": "AWS::S3::Bucket",
-        "Properties": {
-          "BucketName": {
-            "Ref": "BucketName"
+          "Type": "AWS::S3::Bucket",
+          "Properties": {
+              "BucketName": {
+                  "Ref": "BucketName"
+              },
+              "OwnershipControls": {
+                  "Rules": [
+                      {
+                          "ObjectOwnership": "BucketOwnerEnforced"
+                      }
+                  ]
+              }
           },
-          "AccessControl": "PublicRead"
-        },
-        "DeletionPolicy": "Retain"
+          "DeletionPolicy": "Retain"
       }
-    },
-    "Parameters": {
+  },
+  "Parameters": {
       "BucketName": {
-        "Description": "The name of the S3 bucket",
-        "Type": "String"
+          "Description": "The name of the S3 bucket",
+          "Type": "String"
       }
-    }
   }
+}
+
   
