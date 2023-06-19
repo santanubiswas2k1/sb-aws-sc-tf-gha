@@ -18,7 +18,7 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 3.0"
     }
-  # }
+   }
   # backend "s3" {
   # }
 }
