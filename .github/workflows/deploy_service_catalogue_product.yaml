@@ -54,9 +54,10 @@ jobs:
           }
         }
         EOF
+        ls -ltr
 
     - name: 'Terraform Init'
-      run: terraform init -backend-config=./backend.tf
+      run: terraform init -backend-config=../../backend.tf
       working-directory: ./Infrastructure/terraform
 
     - name: 'Terraform Validate'
