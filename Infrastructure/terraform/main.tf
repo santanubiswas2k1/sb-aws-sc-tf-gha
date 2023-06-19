@@ -38,3 +38,8 @@ resource "aws_cloudformation_stack" "s3_bucket" {
   template_body = file("../cf/s3-template.json")
 }
 
+locals {
+  parameters = {
+    BucketName = "sbs31243"
+  }
+}
