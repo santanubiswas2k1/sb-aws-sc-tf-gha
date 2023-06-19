@@ -29,7 +29,7 @@ provider "aws" {
 # }
 
 resource "aws_cloudformation_stack" "s3_bucket" {
-  name = "s3-bucket-sb"
+  name = "s3bucketsb"
 
   # parameters = {
   #   BucketName = local.parameters.BucketName
