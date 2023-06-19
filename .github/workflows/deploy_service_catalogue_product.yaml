@@ -67,7 +67,7 @@ jobs:
         # terraform init
 
     - name: 'Terraform Validate'
-      run: terraform validate -backend-config=../../backend.tf
+      run: terraform validate
       working-directory: ./Infrastructure/terraform
 
     - name: 'Terraform Plan'
