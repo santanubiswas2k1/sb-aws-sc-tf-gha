@@ -30,7 +30,7 @@ provider "aws" {
 
 resource "aws_cloudformation_stack" "s3_bucket" {
   name = "s3bucketsb"
-
+  parameters = local.parameters
   # parameters = {
   #   BucketName = local.parameters.BucketName
   # }
