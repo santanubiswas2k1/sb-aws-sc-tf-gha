@@ -46,9 +46,9 @@ jobs:
 
     - name: Create Backend Configuration
       run: |
-        # echo 'bucket = "${{ secrets.AWS_BUCKET_NAME }}"' > backend.hcl
-        # echo 'key    = "${{ secrets.AWS_BUCKET_KEY_NAME }}"' >> backend.hcl
-        # echo 'region = "${{ secrets.AWS_REGION }}"' >> backend.hcl  
+        echo 'bucket = "${{ secrets.AWS_BUCKET_NAME }}"' > backend.hcl
+        echo 'key    = "${{ secrets.AWS_BUCKET_KEY_NAME }}"' >> backend.hcl
+        echo 'region = "${{ secrets.AWS_REGION }}"' >> backend.hcl  
         # cat > backend.tf <<EOF
         # terraform {
         #   backend "s3" {
