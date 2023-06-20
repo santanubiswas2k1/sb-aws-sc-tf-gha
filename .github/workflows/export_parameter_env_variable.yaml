@@ -44,8 +44,8 @@ jobs:
         aws s3 cp s3://sbs31243/myparameter.json myparameter.json
         export JSON=$(cat myparameter.json)
         for key in $(echo $JSON | jq -r 'keys[]'); do
-          value=$(echo $JSON | jq -r .[$key])
-          echo "$key=$value" >> $GITHUB_ENV
+            value=$(echo $JSON | jq -r ".\"$key\"")
+            echo "$key=$value" >> $GITHUB_ENV
         done
     - name: Display environment variables
       run: env
