@@ -1,0 +1,49 @@
+name: Export JSON to Env
+on:
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - main
+permissions:
+      id-token: write # This is required for aws oidc connection
+      contents: read # This is required for actions/checkout
+      pull-requests: write # This is required for gh bot to comment PR
+env:
+  TF_LOG: INFO
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+  AWS_BUCKET_KEY_NAME: ${{ secrets.AWS_BUCKET_KEY_NAME }}
+  AWS_ROLE: ${{ secrets.AWS_ROLE }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    
+    - name: Configure AWS credentials from AWS account
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE }}
+        aws-region: ${{ secrets.AWS_REGION }}
+        role-session-name: GitHub-OIDC-TERRAFORM1
+
+    - name: Set up AWS CLI
+      run: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install --update
+        aws --version
+
+    - name: Install jq
+      run: sudo apt-get install -y jq
+
+    - name: Retrieve JSON from S3 and export to environment variables
+      run: |
+        aws s3 cp s3://sbs31243/myparameter.json myparameter.json
+        export JSON=$(cat myparameter.json)
+        for key in $(echo $JSON | jq -r 'keys[]'); do
+          value=$(echo $JSON | jq -r .[$key])
+          echo "$key=$value" >> $GITHUB_ENV
+        done
+        env
