@@ -1,0 +1,296 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 Lifecycle Policy CloudFormation Template
+
+Parameters:
+  OrgName:
+    Description: Organization name
+    Type: String
+  
+  BTGName:
+    Description: Sub-organization name
+    Type: String
+  
+  DataAssetName:
+    Description: Data asset name
+    Type: String
+  
+  EnvironmentName:
+    Description: Environment name
+    Type: String
+    AllowedValues:
+      - 'dev'
+      - 'sit'
+      - 'ppd'
+      - 'prd'
+  PrimaryRegion:
+      Description: Environment name
+      Type: String
+      AllowedValues:
+      - 'us-east-1'
+      - 'eu-west-1'
+      - 'eu-west-2'
+      - 'eu-north-1'
+
+  SecondaryRegion:
+      Description: Environment name
+      Type: String
+      AllowedValues:
+      - 'us-east-1'
+      - 'eu-west-1'
+      - 'eu-west-2'
+      - 'eu-north-1'
+  EnableLifecycle:
+    Description: Enable Lifecycle Policy (Yes/No)
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  CreateRawBucket:
+    Description: Create Raw S3 Bucket (Yes/No)
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  CreateWorkBucket:
+    Description: Create Work S3 Bucket (Yes/No)
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  CreatePublishBucket:
+    Description: Create Publish S3 Bucket (Yes/No)
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  TagKey1:
+    Type: String
+    Description: Resource Type
+    AllowedValues:
+      - 'ResourceType'
+  TagValue1:
+    Type: String
+    Description: Type of Resource
+    AllowedValues:
+      - 'Dedicated'
+      - 'Shared'
+  TagKey2:
+    Type: String
+    Description: Cost Center type
+    AllowedValues:
+      - 'SharedCostCenter'
+      - 'BTGCostCenter'
+  TagValue2:
+    Type: String
+    Description: Value for Cost Center
+  TagKey3:
+    Type: String
+    Description: Value for N-Code
+    AllowedValues:
+      - 'SharedNCode'
+      - 'DedicatedNCode'
+  TagValue3:
+    Type: String
+    Description: Value for Tag 2
+
+
+Conditions:
+  CreateRawBucketCondition: !Equals [!Ref CreateRawBucket, 'Yes']
+  CreateWorkBucketCondition: !Equals [!Ref CreateWorkBucket, 'Yes']
+  CreatePublishBucketCondition: !Equals [!Ref CreatePublishBucket, 'Yes']
+  EnableLifecyclePolicy: !Equals [!Ref EnableLifecycle, 'Yes']
+
+Resources:
+  RawS3Bucket:
+    Condition: CreateRawBucketCondition
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-raw'
+      LifecycleConfiguration:
+        !If 
+          - EnableLifecyclePolicy
+          - Rules:
+              - Id: RawTier1Transition
+                Status: Enabled
+                Transitions:
+                  - TransitionInDays: 30
+                    StorageClass: STANDARD_IA
+              - Id: RawTier2Transition
+                Status: Enabled
+                Transitions:
+                  - TransitionInDays: 60
+                    StorageClass: GLACIER
+          - Ref: 'AWS::NoValue'
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogsBucket
+      VersioningConfiguration:
+        Status: Enabled
+      ReplicationConfiguration:
+        Role: !GetAtt ReplicationRole.Arn
+        Rules:
+          - Id: RawReplicationRule
+            Status: Enabled
+            Destination:
+              Bucket: !GetAtt RawS3ReplicationBucket.Arn
+      Tags:
+        - Key: !Ref TagKey1
+          Value: !Ref TagValue1
+        - Key: !Ref TagKey2
+          Value: !Ref TagValue2
+        - Key: !Ref TagKey3
+          Value: !Ref TagValue3
+  
+  RawS3ReplicationBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-repl-raw'
+      VersioningConfiguration:
+        Status: Enabled
+
+  WorkS3Bucket:
+    Condition: CreateWorkBucketCondition
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-work'
+      LifecycleConfiguration:
+        !If 
+          - EnableLifecyclePolicy
+          - Rules:
+              - Id: WorkTier1Transition
+                Status: Enabled
+                Transitions:
+                  - TransitionInDays: 30
+                    StorageClass: STANDARD_IA
+              - Id: WorkTier2Transition
+                Status: Enabled
+                Transitions:
+                  - TransitionInDays: 60
+                    StorageClass: GLACIER
+          - Ref: 'AWS::NoValue'
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogsBucket
+      VersioningConfiguration:
+        Status: Enabled
+      ReplicationConfiguration:
+        Role: !GetAtt ReplicationRole.Arn
+        Rules:
+          - Id: RawReplicationRule
+            Status: Enabled
+            Destination:
+              Bucket: !GetAtt WorkS3ReplicationBucket.Arn
+      Tags:
+        - Key: !Ref TagKey1
+          Value: !Ref TagValue1
+        - Key: !Ref TagKey2
+          Value: !Ref TagValue2
+        - Key: !Ref TagKey3
+          Value: !Ref TagValue3
+
+  WorkS3ReplicationBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-repl-work'
+      VersioningConfiguration:
+        Status: Enabled
+
+  PublishS3Bucket:
+    Condition: CreatePublishBucketCondition
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-publish'
+      LifecycleConfiguration:
+        !If 
+          - EnableLifecyclePolicy
+          - Rules:
+              - Id: PublishTier1Transition
+                Status: Enabled
+                Transitions:
+                  - TransitionInDays: 30
+                    StorageClass: STANDARD_IA
+              - Id: PublishTier2Transition
+                Status: Enabled
+                Transitions:
+                  - TransitionInDays: 60
+                    StorageClass: GLACIER
+          - Ref: 'AWS::NoValue'
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogsBucket
+      VersioningConfiguration:
+        Status: Enabled
+      ReplicationConfiguration:
+        Role: !GetAtt ReplicationRole.Arn
+        Rules:
+          - Id: RawReplicationRule
+            Status: Enabled
+            Destination:
+              Bucket: !GetAtt PublishS3ReplicationBucket.Arn
+      Tags:
+        - Key: !Ref TagKey1
+          Value: !Ref TagValue1
+        - Key: !Ref TagKey2
+          Value: !Ref TagValue2
+        - Key: !Ref TagKey3
+          Value: !Ref TagValue3
+
+  PublishS3ReplicationBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-repl-publish'
+      VersioningConfiguration:
+        Status: Enabled
+
+  LogsBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-logs'
+
+  ReplicationRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: replication-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: s3.amazonaws.com
+            Action: sts:AssumeRole
+      Path: '/'
+      Policies:
+        - PolicyName: ReplicationPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetReplicationConfiguration
+                  - s3:ListBucket
+                  - s3:ListBucketVersions
+                  - s3:ReplicateObject
+                  - s3:ReplicateDelete
+                Resource:
+                  - !Sub arn:aws:s3:::'${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-raw'
+                  - !Sub arn:aws:s3:::'${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-raw'/*
+                  - !Sub arn:aws:s3:::'${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-work'
+                  - !Sub arn:aws:s3:::'${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-work'/*
+                  - !Sub arn:aws:s3:::'${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-publish'
+                  - !Sub arn:aws:s3:::'${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-publish'/*
+Outputs:
+  RawBucketName:
+    Description: Name of the Raw S3 bucket
+    Value: !Ref RawS3Bucket
+    Export:
+      Name: !Sub 'export-${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-raw'
+  WorkBucketName:
+    Description: Name of the Work S3 bucket
+    Value: !Ref WorkS3Bucket
+  PublishBucketName:
+    Description: Name of the Publish S3 bucket
+    Value: !Ref PublishS3Bucket
+  LogsBucketName:
+    Description: Name of the Logs S3 bucket
+    Value: !Ref LogsBucket

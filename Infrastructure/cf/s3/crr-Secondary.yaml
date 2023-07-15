@@ -1,0 +1,168 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 Lifecycle Policy CloudFormation Template
+
+Parameters:
+  OrgName:
+    Description: Organization name
+    Type: String
+  
+  BTGName:
+    Description: Sub-organization name
+    Type: String
+  
+  DataAssetName:
+    Description: Data asset name
+    Type: String
+  
+  EnvironmentName:
+    Description: Environment name
+    Type: String
+    AllowedValues:
+      - 'dev'
+      - 'sit'
+      - 'ppd'
+      - 'prd'
+  PrimaryRegion:
+      Description: Environment name
+      Type: String
+      AllowedValues:
+      - 'us-east-1'
+      - 'eu-west-1'
+      - 'eu-west-2'
+      - 'eu-north-1'
+
+  SecondaryRegion:
+      Description: Environment name
+      Type: String
+      AllowedValues:
+      - 'us-east-1'
+      - 'eu-west-1'
+      - 'eu-west-2'
+      - 'eu-north-1'
+  EnableLifecycle:
+    Description: Enable Lifecycle Policy (Yes/No)
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  CreateRawBucket:
+    Description: Create Raw S3 Bucket (Yes/No)
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  CreateWorkBucket:
+    Description: Create Work S3 Bucket (Yes/No)
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  CreatePublishBucket:
+    Description: Create Publish S3 Bucket (Yes/No)
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  TagKey1:
+    Type: String
+    Description: Resource Type
+    AllowedValues:
+      - 'ResourceType'
+  TagValue1:
+    Type: String
+    Description: Type of Resource
+    AllowedValues:
+      - 'Dedicated'
+      - 'Shared'
+  TagKey2:
+    Type: String
+    Description: Cost Center type
+    AllowedValues:
+      - 'SharedCostCenter'
+      - 'BTGCostCenter'
+  TagValue2:
+    Type: String
+    Description: Value for Cost Center
+  TagKey3:
+    Type: String
+    Description: Value for N-Code
+    AllowedValues:
+      - 'SharedNCode'
+      - 'DedicatedNCode'
+  TagValue3:
+    Type: String
+    Description: Value for Tag 2
+
+
+Conditions:
+  CreateRawBucketCondition: !Equals [!Ref CreateRawBucket, 'Yes']
+  CreateWorkBucketCondition: !Equals [!Ref CreateWorkBucket, 'Yes']
+  CreatePublishBucketCondition: !Equals [!Ref CreatePublishBucket, 'Yes']
+  EnableLifecyclePolicy: !Equals [!Ref EnableLifecycle, 'Yes']
+
+Resources:  
+  RawS3ReplicationBucket:
+    Condition: CreateRawBucketCondition
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-xxrepl-raw'
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: !Ref TagKey1
+          Value: !Ref TagValue1
+        - Key: !Ref TagKey2
+          Value: !Ref TagValue2
+        - Key: !Ref TagKey3
+          Value: !Ref TagValue3
+
+  WorkS3ReplicationBucket:
+    Condition: CreateWorkBucketCondition
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-xxrepl-work'
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: !Ref TagKey1
+          Value: !Ref TagValue1
+        - Key: !Ref TagKey2
+          Value: !Ref TagValue2
+        - Key: !Ref TagKey3
+          Value: !Ref TagValue3
+
+  PublishS3ReplicationBucket:
+    Condition: CreatePublishBucketCondition
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-xxrepl-publish'
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: !Ref TagKey1
+          Value: !Ref TagValue1
+        - Key: !Ref TagKey2
+          Value: !Ref TagValue2
+        - Key: !Ref TagKey3
+          Value: !Ref TagValue3
+
+Outputs:
+  RawS3ReplicationBucket:
+    Description: Name of the Replicated Raw S3 bucket
+    Value: !GetAtt RawS3ReplicationBucket.Arn
+    Export:
+      Name: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-xxrepl-raw-export'
+  WorkS3ReplicationBucket:
+    Description: Name of the Replicated Work S3 bucket
+    Value: !GetAtt WorkS3ReplicationBucket.Arn
+    Export:
+      Name: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-xxrepl-work-export'
+  PublishS3ReplicationBucket:
+    Description: Name of the Replicated Publish S3 bucket
+    Value: !GetAtt PublishS3ReplicationBucket.Arn
+    Export:
+      Name: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-xxrepl-publish-export'
