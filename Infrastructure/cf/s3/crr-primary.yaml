@@ -1,0 +1,339 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 Lifecycle Policy CloudFormation Template
+
+Parameters:
+  OrgName:
+    Description: Organization name
+    Type: String
+  
+  BTGName:
+    Description: Sub-organization name
+    Type: String
+  
+  DataAssetName:
+    Description: Data asset name
+    Type: String
+  
+  EnvironmentName:
+    Description: Environment name
+    Type: String
+    AllowedValues:
+      - 'dev'
+      - 'sit'
+      - 'ppd'
+      - 'prd'
+  PrimaryRegion:
+      Description: Environment name
+      Type: String
+      AllowedValues:
+      - 'us-east-1'
+      - 'eu-west-1'
+      - 'eu-west-2'
+      - 'eu-north-1'
+
+  SecondaryRegion:
+      Description: Environment name
+      Type: String
+      AllowedValues:
+      - 'us-east-1'
+      - 'eu-west-1'
+      - 'eu-west-2'
+      - 'eu-north-1'
+  EnableLifecycle:
+    Description: Enable Lifecycle Policy (Yes/No)
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  EnableCrossRegionReplication:
+    Description: Enable Cross Region Replication (Yes/No)
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  CreateRawBucket:
+    Description: Create Raw S3 Bucket (Yes/No)
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  CreateWorkBucket:
+    Description: Create Work S3 Bucket (Yes/No)
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  CreatePublishBucket:
+    Description: Create Publish S3 Bucket (Yes/No)
+    Type: String
+    Default: 'Yes'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  TagKey1:
+    Type: String
+    Description: Resource Type
+    AllowedValues:
+      - 'ResourceType'
+  TagValue1:
+    Type: String
+    Description: Type of Resource
+    AllowedValues:
+      - 'Dedicated'
+      - 'Shared'
+  TagKey2:
+    Type: String
+    Description: Cost Center type
+    AllowedValues:
+      - 'SharedCostCenter'
+      - 'BTGCostCenter'
+  TagValue2:
+    Type: String
+    Description: Value for Cost Center
+  TagKey3:
+    Type: String
+    Description: Key for N-Code
+    AllowedValues:
+      - 'SharedNCode'
+      - 'DedicatedNCode'
+  TagValue3:
+    Type: String
+    Description: Value for N-Code
+
+  TagKey4:
+    Type: String
+    Description: Project DL email ID
+    AllowedValues:
+      - 'DL_emailID'
+  TagValue4:
+    Type: String
+    Description: Value for Tag 4
+
+
+Conditions:
+  CreateRawBucketCondition: !Equals [!Ref CreateRawBucket, 'Yes']
+  CreateWorkBucketCondition: !Equals [!Ref CreateWorkBucket, 'Yes']
+  CreatePublishBucketCondition: !Equals [!Ref CreatePublishBucket, 'Yes']
+  IsDevOrSit: !Or
+    - !Equals [ !Ref EnvironmentName, "dev" ]
+    - !Equals [ !Ref EnvironmentName, "sit" ]
+  IsPpdOrPrd: !Or
+    - !Equals [ !Ref EnvironmentName, "ppd" ]
+    - !Equals [ !Ref EnvironmentName, "prd" ]
+
+Resources:
+
+  LogsBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-logs'
+      LifecycleConfiguration:
+        Rules: 
+          !If
+            - IsDevOrSit      
+            - - Id: "LifecycleRuleForNonProd"
+                ExpirationInDays: 90
+                NoncurrentVersionExpirationInDays: 90
+                Status: Enabled
+            - - Id: "DummyRuleForPpdOrPrd"
+                Status: Disabled
+                ExpirationInDays: 99999999
+  LogsBucketPolicy:
+    DependsOn: LogsBucket
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LogsBucket
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:PutObject
+            Effect: Allow
+            Resource: !Sub arn:aws:s3:::${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-logs/*
+            Principal:
+              Service: s3.amazonaws.com
+
+
+  RawS3Bucket:
+    Condition: CreateRawBucketCondition
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-raw'
+      LifecycleConfiguration:
+        Rules: 
+          !If
+            - IsDevOrSit      
+            - - Id: "LifecycleRuleForNonProd"
+                Status: Enabled
+                NoncurrentVersionExpirationInDays: 90
+            - - Id: "DummyRuleForPpdOrPrd"
+                Status: Disabled
+                ExpirationInDays: 99999999
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogsBucket
+        LogFilePrefix: raw/
+      VersioningConfiguration:
+        Status: Enabled
+      ReplicationConfiguration:
+        !If
+          - IsPpdOrPrd
+          - Role: !GetAtt ReplicationRole.Arn
+            Rules:
+              - Id: ReplicationRule
+                Prefix: ''
+                Status: Enabled
+                Destination:
+                  Bucket: !Sub arn:aws:s3:::${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-xxrepl-raw
+                  StorageClass: STANDARD
+          - !Ref 'AWS::NoValue'
+      Tags:
+        - Key: !Ref TagKey1
+          Value: !Ref TagValue1
+        - Key: !Ref TagKey2
+          Value: !Ref TagValue2
+        - Key: !Ref TagKey3
+          Value: !Ref TagValue3
+
+
+  WorkS3Bucket:
+    Condition: CreateWorkBucketCondition
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-work'
+      LifecycleConfiguration:
+        Rules: 
+          !If
+            - IsDevOrSit      
+            - - Id: "LifecycleRuleForNonProd"
+                Status: Enabled
+                NoncurrentVersionExpirationInDays: 90
+            - - Id: "DummyRuleForPpdOrPrd"
+                Status: Disabled
+                ExpirationInDays: 99999999
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogsBucket
+        LogFilePrefix: work/
+      VersioningConfiguration:
+        Status: Enabled
+      ReplicationConfiguration:
+        !If
+          - IsPpdOrPrd
+          - Role: !GetAtt ReplicationRole.Arn
+            Rules:
+              - Id: ReplicationRule
+                Prefix: ''
+                Status: Enabled
+                Destination:
+                  Bucket: !Sub arn:aws:s3:::${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-xxrepl-work
+                  StorageClass: STANDARD
+          - !Ref 'AWS::NoValue'
+      Tags:
+        - Key: !Ref TagKey1
+          Value: !Ref TagValue1
+        - Key: !Ref TagKey2
+          Value: !Ref TagValue2
+        - Key: !Ref TagKey3
+          Value: !Ref TagValue3
+
+
+  PublishS3Bucket:
+    Condition: CreatePublishBucketCondition
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-publish'
+      LifecycleConfiguration:
+        Rules: 
+          !If
+            - IsDevOrSit      
+            - - Id: "LifecycleRuleForNonProd"
+                Status: Enabled
+                NoncurrentVersionExpirationInDays: 90
+            - - Id: "DummyRuleForPpdOrPrd"
+                Status: Disabled
+                ExpirationInDays: 99999999
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogsBucket
+        LogFilePrefix: publish/
+      VersioningConfiguration:
+        Status: Enabled
+      ReplicationConfiguration:
+        !If
+          - IsPpdOrPrd
+          - Role: !GetAtt ReplicationRole.Arn
+            Rules:
+              - Id: ReplicationRule
+                Prefix: ''
+                Status: Enabled
+                Destination:
+                  Bucket: !Sub arn:aws:s3:::${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-xxrepl-publish
+                  StorageClass: STANDARD
+          - !Ref 'AWS::NoValue'
+      Tags:
+        - Key: !Ref TagKey1
+          Value: !Ref TagValue1
+        - Key: !Ref TagKey2
+          Value: !Ref TagValue2
+        - Key: !Ref TagKey3
+          Value: !Ref TagValue3
+
+
+  ReplicationRole:
+    Condition: IsPpdOrPrd
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub '${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-replication-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: s3.amazonaws.com
+            Action: sts:AssumeRole
+      Path: '/'
+      Policies:
+        - PolicyName: ReplicationPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [
+                    "s3:GetReplicationConfiguration",
+                    "s3:ListBucket",
+                    "s3:GetObjectVersionForReplication",
+                    "s3:GetObjectVersionAcl",
+                    "s3:GetObjectVersionTagging",
+                    "s3:ListBucketVersions",
+                    "s3:ReplicateObject",
+                    "s3:ReplicateDelete",
+                    "s3:ReplicateTags"
+                ]
+                Resource:
+                  - !Sub arn:aws:s3:::${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-raw
+                  - !Sub arn:aws:s3:::${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-raw/*
+                  - !Sub arn:aws:s3:::${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-work
+                  - !Sub arn:aws:s3:::${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-work/*
+                  - !Sub arn:aws:s3:::${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-publish
+                  - !Sub arn:aws:s3:::${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-publish/*
+                  - !Sub arn:aws:s3:::${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-xxrepl-raw
+                  - !Sub arn:aws:s3:::${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-xxrepl-raw/*
+                  - !Sub arn:aws:s3:::${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-xxrepl-work
+                  - !Sub arn:aws:s3:::${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-xxrepl-work/*
+                  - !Sub arn:aws:s3:::${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-xxrepl-publish
+                  - !Sub arn:aws:s3:::${OrgName}-${BTGName}-${DataAssetName}-${EnvironmentName}-xxrepl-publish/*
+
+Outputs:
+  RawBucketName:
+    Description: Name of the Raw S3 bucket
+    Value: !Ref RawS3Bucket
+  WorkBucketName:
+    Description: Name of the Work S3 bucket
+    Value: !Ref WorkS3Bucket
+  PublishBucketName:
+    Description: Name of the Publish S3 bucket
+    Value: !Ref PublishS3Bucket
+  LogsBucketName:
+    Description: Name of the Logs S3 bucket
+    Value: !Ref LogsBucket
